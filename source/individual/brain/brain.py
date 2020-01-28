@@ -11,11 +11,11 @@ import os
 
 
 ## Policy network model class
-class PolicyNetwork:
-    def __init__(self):  # Later - more parameters
+class BrainNetwork:
+    def __init__(self, checkpoint_path):  # Later - more parameters
         self.history = None
 
-        self.checkpoint_path = "networks/network/trainings/training_2/cp.ckpt"
+        self.checkpoint_path = checkpoint_path  # "brains_storage/cp.ckpt"
         self.checkpoint_abs_path = os.path.abspath(self.checkpoint_path)
 
         self.layers_quant = HIDDEN_LAYERS_QUANTITY
@@ -41,7 +41,6 @@ class PolicyNetwork:
     # @input The size of needed dataset
     # @return Number pairs array and true value of their sum array
     def create_full_dataset(self, size=DATASET_SIZE):
-
         training_set = []
         true_results_set = []
 
@@ -50,10 +49,7 @@ class PolicyNetwork:
             training_set.append(train)
             true_results_set.append(result)
 
-        numpy_training_set = np.array(training_set)
-        numpy_true_results_set = np.array(true_results_set)
-
-        return numpy_training_set, numpy_true_results_set
+        return np.array(training_set), np.array(true_results_set)
 
     ## Function that creates one random game position
     # @return  Number pair and true value of their sum
@@ -111,7 +107,22 @@ class PolicyNetwork:
 
     ## Function loading the weights of the latest trained version of the neural network
     # @param path: The path to the weight data directory
-    def load(self, path=None):
-        if path == None:
-            path = self.checkpoint_path
-        self.model.load_weights(path)
+    def load(self):
+        self.model.load_weights(self.checkpoint_path)
+
+
+class Brain:
+    def __init__(self, id):
+        self.id = id
+        self.network = BrainNetwork("brains_storage/cp" + str(self.id) + ".ckpt")
+        self.intelligence = 0
+
+    def setup(self):
+        self.network.load()
+
+    def train(self):
+        self.network.start_training()
+        self.intelligence = self.network.evaluate()[0]
+
+    def evaluate(self):
+        return self.intelligence
